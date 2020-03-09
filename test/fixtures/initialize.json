@@ -1,0 +1,96 @@
+{
+    "insertIfMissing": true,
+    "deleteIfOnlyKeyIsSpecified": true,
+    "tables": [
+        {
+            "name": "customer",
+            "keys": [
+                "customerId"
+            ],
+            "data": [
+                {
+                    "customerId": 1,
+                    "first": "'Mike'",
+                    "last": "'Wazowski'"
+                },
+                {
+                    "customerId": 2,
+                    "first": "'James'",
+                    "last": "'Sullivan'"
+                },
+                {
+                    "customerId": 3,
+                    "first": "'Boo'",
+                    "last": "'The Kid'"
+                }
+            ]
+        },
+        {
+            "name": "product",
+            "keys": [
+                "productId"
+            ],
+            "data": [
+                {
+                    "productId": 1,
+                    "name": "'Spatula'",
+                    "description": "'flip flip flip'",
+                    "priceUsd": 5
+                },
+                {
+                    "productId": 2,
+                    "name": "'Hat'",
+                    "description": null,
+                    "priceUsd": 50
+                }       
+            ]
+        },
+        {
+            "name": "order",
+            "keys": [
+                "orderId"
+            ],
+            "data": [
+                {
+                    "orderId": 1,
+                    "customerId": 1,
+                    "totalUsd": 15    
+                },
+                {
+                    "orderId": 2,
+                    "customerId": 3,
+                    "totalUsd": 110    
+                }
+            ]
+        },
+        {
+            "name": "orderLineItem",
+            "keys": [
+                "orderLineItemId"
+            ],
+            "data": [
+                {
+                    "orderLineItemId": 1,
+                    "orderId": 1,
+                    "productId": 1,
+                    "productQuantity": 1,
+                    "productPriceUsd": 5
+                },
+                {
+                    "orderLineItemId": 2,
+                    "orderId": 2,
+                    "productId": 1,
+                    "productQuantity": 2,
+                    "productPriceUsd": 5
+                },
+                {
+                    "orderLineItemId": 3,
+                    "orderId": 2,
+                    "productId": 2,
+                    "productQuantity": 2,
+                    "productPriceUsd": 50
+                }        
+            ]
+        }
+    ]
+}
