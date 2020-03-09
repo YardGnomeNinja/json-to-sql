@@ -9,7 +9,7 @@
 -- DBCC CHECKIDENT ('[product]', RESEED, 0)
 
 -- SELECT
--- select * from [customer]
--- select * from [product]
--- select * from [order]
--- select * from [orderLineItem]
+select * from [customer]
+select * from [product]
+select * from [order]
+select * from [orderLineItem]

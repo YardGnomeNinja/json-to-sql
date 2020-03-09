@@ -1,6 +1,11 @@
 {
-    "insertIfMissing": true,
-    "deleteIfOnlyKeyIsSpecified": true,
+    "sqlServerConfig": {
+        "serverName": "(localdb)\\MSSQLLocalDB",
+        "databaseName": "json_to_sql_testing",
+        "trustedConnection": true,
+        "username": "username",
+        "password": "password"
+    },
     "tables": [
         {
             "name": "customer",
@@ -23,7 +28,9 @@
                     "first": "'Boo'",
                     "last": "'The Kid'"
                 }
-            ]
+            ],
+            "insertIfMissing": true,
+            "deleteIfOnlyKeyIsSpecified": true
         },
         {
             "name": "product",
@@ -43,7 +50,9 @@
                     "description": null,
                     "priceUsd": 50
                 }       
-            ]
+            ],
+            "insertIfMissing": true,
+            "deleteIfOnlyKeyIsSpecified": true
         },
         {
             "name": "order",
@@ -62,7 +71,9 @@
                     "customerId": 3,
                     "totalUsd": 110
                 }
-            ]
+            ],
+            "insertIfMissing": true,
+            "deleteIfOnlyKeyIsSpecified": true
         },
         {
             "name": "orderLineItem",
@@ -91,7 +102,9 @@
                     "productQuantity": 2,
                     "productPriceUsd": 50
                 }        
-            ]
+            ],
+            "insertIfMissing": true,
+            "deleteIfOnlyKeyIsSpecified": true
         }
     ]
 }
