@@ -6,8 +6,10 @@ GO
 CREATE TABLE [dbo].[Order](
 	[OrderId] [int] NOT NULL IDENTITY(1,1),
 	[CustomerId] [int] NOT NULL,
+    [CreatedOn] [datetime] NOT NULL,
 	[TotalUSD] [decimal](9, 2) NOT NULL,
     CONSTRAINT FK_Customer FOREIGN KEY (CustomerId) REFERENCES [Customer](CustomerId),
+    CONSTRAINT DF_CreatedOn DEFAULT GETDATE() FOR [CreatedOn],
 PRIMARY KEY CLUSTERED 
 (
 	[OrderId] ASC
