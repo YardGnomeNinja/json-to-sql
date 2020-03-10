@@ -6,6 +6,7 @@ import { SqlRunner } from './sql-runner';
 // APP
 //////////
 let fixtureFilePath: string = "";
+let sqlRunner: SqlRunner;
 
 // Note the following allows async code to execute on init.
 // (async () => {})();
@@ -23,7 +24,7 @@ async function main() {
     try {
         const fileContentJson = JsonFileParser.parse(fixtureFilePath);
 
-        let sqlRunner = new SqlRunner(fileContentJson.sqlServerConfig);
+        sqlRunner = new SqlRunner(fileContentJson.sqlServerConfig);
 
         await sqlRunner.connect();
 
@@ -31,6 +32,11 @@ async function main() {
 
         sqlRunner.close();
     } catch (error) {
+        sqlRunner.close();
+
         console.log(error);
+
+        // Exit with error
+        process.exit(1);
     }
 }

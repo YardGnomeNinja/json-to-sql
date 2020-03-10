@@ -18,7 +18,7 @@ export class SqlRunner {
                 result += ' AND ';
             }
 
-            result += `[${keyValuePair.name}] = ${keyValuePair.value}`;
+            result += `${keyValuePair.name}=${keyValuePair.value}`;
         }
 
         return result;
@@ -33,43 +33,25 @@ export class SqlRunner {
     }
 
     async executeJson(json: any) {
-        for (let tableDefinition of json.tables) {
-            let keyNames = tableDefinition.keys;
-    
-            for (let dataItem of tableDefinition.data) {
-                // Keys
-                let keys = this.getKeys(keyNames, dataItem);
-                let whereStatement = this.buildWhereStatement(keys);
-       
-                // Columns
-                let columns: Array<{'name': string, 'value': any}> = this.getColumns(dataItem)
-    
-                let populateQueryDataStringsResult = this.populateQueryDataStrings(keys, columns);
+        try {
+            for (let queryDefinition of json.queryDefinitions) {
+                // NOTE: Changing the queryDefinition.type to something other than valid options can be used to disable execution for that definition
+                if (queryDefinition.type === 'table') {
+                    await this.executeTableQueryDefinition(queryDefinition);
+                }
 
-                let insertColumns = populateQueryDataStringsResult.insertColumns;
-                let insertValues = populateQueryDataStringsResult.insertValues;
-                let updateColumnsAndValues = populateQueryDataStringsResult.updateColumnsAndValues;
-
-                // EXISTS
-                let recordExists = await this.getRecordExists(tableDefinition, whereStatement);
-                
-                // INSERT
-                await this.executeInsert(tableDefinition, insertColumns, insertValues, recordExists);
-                
-                // UPDATE
-                await this.executeUpdate(tableDefinition, updateColumnsAndValues, whereStatement, recordExists);
-    
-                // DELETE
-                await this.executeDelete(tableDefinition, whereStatement, insertColumns, updateColumnsAndValues);
-    
-                console.log('-----');
+                if (queryDefinition.type === 'storedProcedure') {
+                    await this.executeStoredProcedureQueryDefinition(queryDefinition);
+                }
             }
+        } catch (error) {
+            throw error;
         }
     }
 
     async executeDelete(tableDefinition: any, whereStatement: string, insertColumns: string, updateColumnsAndValues: string) {
         let deleteIfOnlyKeyIsSpecified: boolean = tableDefinition.deleteIfOnlyKeyIsSpecified === true ? true : false;
-        let query = `DELETE FROM [${tableDefinition.name}] WHERE ${whereStatement}`;
+        let query = `DELETE FROM ${tableDefinition.name} WHERE ${whereStatement}`;
 
         if (deleteIfOnlyKeyIsSpecified && insertColumns === '' && updateColumnsAndValues === '') {
             console.log(query);
@@ -80,7 +62,7 @@ export class SqlRunner {
 
     async executeInsert(tableDefinition: any, insertColumns: string, insertValues: string, recordExists: boolean) {
         let insertIfMissing: boolean = tableDefinition.insertIfMissing === true ? true : false;
-        let query = `INSERT INTO [${tableDefinition.name}] (${insertColumns}) VALUES (${insertValues})`;
+        let query = `INSERT INTO ${tableDefinition.name} (${insertColumns}) VALUES (${insertValues})`;
 
         if (insertIfMissing && !recordExists && insertColumns != '') {
             console.log(query);
@@ -99,8 +81,85 @@ export class SqlRunner {
         }
     }
 
+    async executeStoredProcedure(queryDefinition: any, values: string) {
+        let query = `EXEC ${queryDefinition.name} ${values}`;
+
+        console.log(query);
+        let queryResult = await this.executeQuery(query);
+        console.log(queryResult);
+    }
+
+    async executeStoredProcedureQueryDefinition(queryDefinition: any) {
+        console.log('-----');
+        console.log(`${queryDefinition.type} '${queryDefinition.name}'`);
+        console.log('-----');
+        
+        let spExists = await this.getDatabaseObjectExists(queryDefinition);
+        
+        if (spExists === true) {
+            for (let dataItem of queryDefinition.data) {
+                // Columns
+                let columns: Array<{'name': string, 'value': any}> = this.getColumns(dataItem)
+
+                let populateQueryDataStringsResult = this.populateQueryDataStrings(columns);
+
+                let spFieldsAndValues = populateQueryDataStringsResult.spFieldsAndValues;
+
+                // EXECUTE
+                await this.executeStoredProcedure(queryDefinition, spFieldsAndValues);
+
+                console.log('-----');
+            }
+        } else {
+            throw new Error(`${queryDefinition.type} '${queryDefinition.name}' was not found`);
+        }
+    }
+
+    async executeTableQueryDefinition(queryDefinition: any) {
+        console.log('-----');
+        console.log(`${queryDefinition.type} '${queryDefinition.name}'`);
+        console.log('-----');
+        
+        let tableExists = await this.getDatabaseObjectExists(queryDefinition);
+        
+        if (tableExists === true) {
+            let keyNames = queryDefinition.keys;
+
+            for (let dataItem of queryDefinition.data) {
+                // Keys
+                let keys = this.getKeys(keyNames, dataItem);
+                let whereStatement = this.buildWhereStatement(keys);
+    
+                // Columns
+                let columns: Array<{'name': string, 'value': any}> = this.getColumns(dataItem)
+    
+                let populateQueryDataStringsResult = this.populateQueryDataStrings(columns, keys);
+    
+                let insertColumns = populateQueryDataStringsResult.insertColumns;
+                let insertValues = populateQueryDataStringsResult.insertValues;
+                let updateColumnsAndValues = populateQueryDataStringsResult.updateColumnsAndValues;
+    
+                // EXISTS
+                let recordExists = await this.getRecordExists(queryDefinition, whereStatement);
+    
+                // INSERT
+                await this.executeInsert(queryDefinition, insertColumns, insertValues, recordExists);
+                
+                // UPDATE
+                await this.executeUpdate(queryDefinition, updateColumnsAndValues, whereStatement, recordExists);
+    
+                // DELETE
+                await this.executeDelete(queryDefinition, whereStatement, insertColumns, updateColumnsAndValues);
+    
+                console.log('-----');
+            }
+        } else {
+            throw new Error(`${queryDefinition.type} '${queryDefinition.name}' was not found`);
+        }
+    }
+
     async executeUpdate(tableDefinition: any, updateColumnsAndValues: string, whereStatement: string, recordExists: boolean) {
-        let query = `UPDATE [${tableDefinition.name}] SET ${updateColumnsAndValues} WHERE ${whereStatement}`;
+        let query = `UPDATE ${tableDefinition.name} SET ${updateColumnsAndValues} WHERE ${whereStatement}`;
 
         if (recordExists && updateColumnsAndValues != '') {
             console.log(query);
@@ -129,27 +188,45 @@ export class SqlRunner {
         return results;
     }
 
+    private async getDatabaseObjectExists(queryDefinition: any): Promise<boolean> {
+        let query = '';
+        
+        if (queryDefinition.type === 'table') {
+            query = `SELECT IIF (EXISTS (SELECT 1 FROM sys.Objects WHERE object_id = object_id(N'${queryDefinition.name}') AND type = N'U'), 'true', 'false') as 'object_exists'`;
+        }     
+
+        if (queryDefinition.type === 'storedProcedure') {
+            query = `SELECT IIF (EXISTS (SELECT 1 FROM sys.Objects WHERE object_id = object_id(N'${queryDefinition.name}') AND type IN (N'P',N'PC')), 'true', 'false') as 'object_exists'`;
+        }     
+
+        console.log(query);
+        let queryResult = await this.executeQuery(query);
+
+        return Promise.resolve(queryResult.recordset[0].object_exists === 'true');
+    }
+
     private async getRecordExists(tableDefinition: any, whereStatement: string): Promise<boolean> {
-        let query = `SELECT IIF (EXISTS (SELECT 1 FROM [${tableDefinition.name}] WHERE ${whereStatement}), 'true', 'false') as 'record_exists'`;
+        let query = `SELECT IIF (EXISTS (SELECT 1 FROM ${tableDefinition.name} WHERE ${whereStatement}), 'true', 'false') as 'record_exists'`;
 
         let queryResult = await this.executeQuery(query);
 
         return Promise.resolve(queryResult.recordset[0].record_exists === 'true');
     }
 
-    private populateQueryDataStrings(keys: Array<{ 'name': string, 'value': any }>, columns: Array<{ 'name': string, 'value': any }>): { insertColumns: string, insertValues: string, updateColumnsAndValues: string } {
+    private populateQueryDataStrings(columns: Array<{ 'name': string, 'value': any }>, keys?: Array<{ 'name': string, 'value': any }>): { insertColumns: string, insertValues: string, updateColumnsAndValues: string, spFieldsAndValues: string } {
         let insertColumns: string = '';
         let insertValues: string = '';
         let updateColumnsAndValues: string = '';
+        let spFieldsAndValues: string = '';
 
         for (let column of columns) {
             // If the current column name is found in the keys, ignore it
-            if (keys.findIndex(x => x.name === column.name) === -1) {
+            if (keys !== undefined && keys.findIndex(x => x.name === column.name) === -1) {
                 if (insertColumns !== '') {
                     insertColumns += ', ';
                 }
 
-                insertColumns += `[${column.name}]`;
+                insertColumns += `${column.name}`;
 
                 if (insertValues !== '') {
                     insertValues += ', ';
@@ -161,11 +238,17 @@ export class SqlRunner {
                     updateColumnsAndValues += ', ';
                 }
 
-                updateColumnsAndValues += `[${column.name}] = ${column.value}`;
+                updateColumnsAndValues += `${column.name}=${column.value}`;
+            } else {
+                if (spFieldsAndValues !== '') {
+                    spFieldsAndValues += ', ';
+                }
+
+                spFieldsAndValues += `\@${column.name}=${column.value}`;           
             }
         }
 
-        return { insertColumns: insertColumns, insertValues: insertValues, updateColumnsAndValues: updateColumnsAndValues };
+        return { insertColumns: insertColumns, insertValues: insertValues, updateColumnsAndValues: updateColumnsAndValues, spFieldsAndValues: spFieldsAndValues };
     }
 
     private translateConfig(config: any) {
