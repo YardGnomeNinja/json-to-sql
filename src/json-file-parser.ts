@@ -8,7 +8,6 @@ export class JsonFileParser {
             return JSON.parse(fileContentRaw.toString());
         } else {
             throw new Error(`Fixture file path: '${fixtureFilePath}' could not be found`);
-
         }
     }
 }
