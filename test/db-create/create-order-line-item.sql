@@ -9,8 +9,8 @@ CREATE TABLE [dbo].[OrderLineItem](
 	[ProductId] [int] NOT NULL,
 	[ProductQuantity] [int] NOT NULL,
 	[ProductPriceUSD] [decimal](9, 2) NOT NULL,
-    CONSTRAINT FK_Order FOREIGN KEY (OrderId) REFERENCES [Order](OrderId),
-    CONSTRAINT FK_Product FOREIGN KEY (ProductId) REFERENCES [Product](ProductId),
+    CONSTRAINT FK_Order FOREIGN KEY (OrderId) REFERENCES [dbo].[Order](OrderId),
+    CONSTRAINT FK_Product FOREIGN KEY (ProductId) REFERENCES [dbo].[Product](ProductId),
 PRIMARY KEY CLUSTERED
 (
 	[OrderLineItemId] ASC

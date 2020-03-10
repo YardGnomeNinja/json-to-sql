@@ -14,4 +14,8 @@
 -- select * from [order]
 -- select * from [orderLineItem]
 
-SELECT IIF (EXISTS (SELECT 1 FROM sys.Objects WHERE object_id = object_id(N'aProcedureName') AND type IN (N'P',N'PC')), 'true', 'false') as 'object_exists'
+-- TABLE EXISTS
+-- SELECT IIF (EXISTS (SELECT 1 FROM sys.Objects WHERE object_id = object_id(N'<table>') AND type = N'U'), 'true', 'false') as object_exists
+
+-- STORED PROCEDURE EXISTS
+-- SELECT IIF (EXISTS (SELECT 1 FROM sys.Objects WHERE object_id = object_id(N'<storedProcedure>') AND type IN (N'P',N'PC')), 'true', 'false') as object_exists
