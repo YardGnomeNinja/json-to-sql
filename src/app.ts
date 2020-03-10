@@ -8,20 +8,18 @@ import { SqlRunner } from './sql-runner';
 let fixtureFilePath: string = "";
 let sqlRunner: SqlRunner;
 
-// Note the following allows async code to execute on init.
-// (async () => {})();
-(async () => {
-    parseArgs(process.argv.slice(2));
-
-    await main();
-})();
-
 function parseArgs(args: any) {
     fixtureFilePath = args[0];
 }
 
-async function main() {
+export async function main(args: Array<"string">) {
     try {
+        parseArgs(args.slice(2));
+
+        if (!fixtureFilePath) {
+            throw new Error('No fixture file was provided');
+        }
+
         const fileContentJson = JsonFileParser.parse(fixtureFilePath);
 
         sqlRunner = new SqlRunner(fileContentJson.sqlServerConfig);
@@ -32,7 +30,9 @@ async function main() {
 
         sqlRunner.close();
     } catch (error) {
-        sqlRunner.close();
+        if (sqlRunner) {
+            sqlRunner.close();
+        }
 
         console.log(error);
 

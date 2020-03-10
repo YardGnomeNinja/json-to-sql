@@ -2,7 +2,10 @@
   "name": "json-to-sql",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "bin": {
+    "@yardgnomeninja/json-to-sql": "bin/json-to-sql",
+    "json-to-sql": "bin/json-to-sql"
+  },
   "scripts": {
     "start": "tsc && node dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"

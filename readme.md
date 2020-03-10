@@ -1,5 +1,8 @@
+## Important
+Only tested on Windows 10
+
 ## Install
 npm install --save yardgnomeninja/json-to-sql#master
 
 ## Run
-npm start '\<path>\\\\\<to>\\\\\<fixture.json>'
+sql-to-json '\<path>\\\\\<to>\\\\\<fixture.json>'
