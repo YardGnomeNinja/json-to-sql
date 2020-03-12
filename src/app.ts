@@ -12,7 +12,11 @@ function parseArgs(args: any) {
     fixtureFilePath = args[0];
 }
 
-export async function main(args: Array<"string">) {
+// Note the following allows async code to execute on init.
+// Use for testing
+(async () => { await main(process.argv); })();
+
+export async function main(args: Array<string>) {
     try {
         parseArgs(args.slice(2));
 
@@ -24,11 +28,15 @@ export async function main(args: Array<"string">) {
 
         sqlRunner = new SqlRunner(fileContentJson.sqlServerConfig);
 
+        console.log(`Opening connection to '${fileContentJson.sqlServerConfig.serverName}' database '${fileContentJson.sqlServerConfig.databaseName}'...`);
         await sqlRunner.connect();
 
+        console.log(`Executing JSON fixture '${fixtureFilePath}'...`)
         await sqlRunner.executeJson(fileContentJson);
 
+        console.log(`Closing connection to '${fileContentJson.sqlServerConfig.serverName}' database '${fileContentJson.sqlServerConfig.databaseName}'...`);
         sqlRunner.close();
+        console.log(`Connection to '${fileContentJson.sqlServerConfig.serverName}' database '${fileContentJson.sqlServerConfig.databaseName}' closed.`);
     } catch (error) {
         if (sqlRunner) {
             sqlRunner.close();

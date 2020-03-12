@@ -1,13 +1,12 @@
-const sql = require('mssql/msnodesqlv8');
+let sql: any;
 
 export class SqlRunner {
     sqlServerConfig: any;
     sqlConnectionPool: any;
+    sqlConnectionPoolConfig: any;
 
     constructor(sqlServerConfig: any) {
-        let sqlConnectionPoolConfig = this.translateConfig(sqlServerConfig);
-
-        this.sqlConnectionPool = new sql.ConnectionPool(sqlConnectionPoolConfig);
+        this.sqlConnectionPoolConfig = this.translateConfig(sqlServerConfig);
     }
 
     buildWhereStatement(keys: any) {
@@ -25,11 +24,11 @@ export class SqlRunner {
     }
 
     close() {
-        this.sqlConnectionPool.close();
+        sql.close();
     }
 
     async connect() {
-        await this.sqlConnectionPool.connect();
+        this.sqlConnectionPool = await sql.connect(this.sqlConnectionPoolConfig);
     }
 
     async executeJson(json: any) {
@@ -73,12 +72,18 @@ export class SqlRunner {
 
     async executeQuery(query: string) {
         try {
-            const request = new sql.Request(this.sqlConnectionPool);
-          
-            return await request.query(query);
+            return await this.sqlConnectionPool.request().query(query);
         } catch (err) {
             console.error(err);
         }
+    }
+
+    async executeSelect(tableDefinition: any, selectColumns: string, whereStatement: string) {
+        let query = `SELECT ${selectColumns} FROM ${tableDefinition.name} WHERE ${whereStatement}`;
+
+        console.log(query);
+        let queryResult = await this.executeQuery(query);
+        console.log(queryResult);
     }
 
     async executeStoredProcedure(queryDefinition: any, values: string) {
@@ -141,16 +146,22 @@ export class SqlRunner {
     
                 // EXISTS
                 let recordExists = await this.getRecordExists(queryDefinition, whereStatement);
-    
-                // INSERT
-                await this.executeInsert(queryDefinition, insertColumns, insertValues, recordExists);
+
+                // SELECT - DEBUGGING USE
+                await this.executeSelect(queryDefinition, insertColumns, whereStatement);
+
+                // // INSERT
+                // await this.executeInsert(queryDefinition, insertColumns, insertValues, recordExists);
                 
                 // UPDATE
                 await this.executeUpdate(queryDefinition, updateColumnsAndValues, whereStatement, recordExists);
     
-                // DELETE
-                await this.executeDelete(queryDefinition, whereStatement, insertColumns, updateColumnsAndValues);
+                // // DELETE
+                // await this.executeDelete(queryDefinition, whereStatement, insertColumns, updateColumnsAndValues);
     
+                // SELECT - DEBUGGING USE
+                await this.executeSelect(queryDefinition, insertColumns, whereStatement);
+
                 console.log('-----');
             }
         } else {
@@ -199,7 +210,6 @@ export class SqlRunner {
             query = `SELECT IIF (EXISTS (SELECT 1 FROM sys.Objects WHERE object_id = object_id(N'${queryDefinition.name}') AND type IN (N'P',N'PC')), 'true', 'false') as 'object_exists'`;
         }     
 
-        console.log(query);
         let queryResult = await this.executeQuery(query);
 
         return Promise.resolve(queryResult.recordset[0].object_exists === 'true');
@@ -255,6 +265,8 @@ export class SqlRunner {
         let sqlConnectionPoolConfig: any;
 
         if (config.trustedConnection === true) {
+            sql = require('mssql/msnodesqlv8'); // NOTE: Fields with triggers cause this to hang. Use when Trusted Connection is required to attach to database.
+            
             sqlConnectionPoolConfig = {
                 server: config.serverName,
                 database: config.databaseName,
@@ -263,6 +275,8 @@ export class SqlRunner {
                 }
             };
         } else {
+            sql = require('mssql'); // Use when Trusted Connection is not required to attach to database
+
             sqlConnectionPoolConfig = {
                 server: config.serverName,
                 database: config.databaseName,

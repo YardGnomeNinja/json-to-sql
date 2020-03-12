@@ -7,6 +7,7 @@ CREATE TABLE [dbo].[Customer](
 	[CustomerId] [int] NOT NULL IDENTITY(1,1),
 	[First] [nvarchar](50) NOT NULL,
 	[Last] [nvarchar](50) NOT NULL,
+    [ModifiedOn] [datetime] NULL
 PRIMARY KEY CLUSTERED 
 (
 	[CustomerId] ASC

@@ -9,11 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const sql = require('mssql/msnodesqlv8');
+let sql;
 class SqlRunner {
     constructor(sqlServerConfig) {
-        let sqlConnectionPoolConfig = this.translateConfig(sqlServerConfig);
-        this.sqlConnectionPool = new sql.ConnectionPool(sqlConnectionPoolConfig);
+        this.sqlConnectionPoolConfig = this.translateConfig(sqlServerConfig);
     }
     buildWhereStatement(keys) {
         let result = '';
@@ -26,11 +25,11 @@ class SqlRunner {
         return result;
     }
     close() {
-        this.sqlConnectionPool.close();
+        sql.close();
     }
     connect() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.sqlConnectionPool.connect();
+            this.sqlConnectionPool = yield sql.connect(this.sqlConnectionPoolConfig);
         });
     }
     executeJson(json) {
@@ -76,12 +75,19 @@ class SqlRunner {
     executeQuery(query) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const request = new sql.Request(this.sqlConnectionPool);
-                return yield request.query(query);
+                return yield this.sqlConnectionPool.request().query(query);
             }
             catch (err) {
                 console.error(err);
             }
+        });
+    }
+    executeSelect(tableDefinition, selectColumns, whereStatement) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let query = `SELECT ${selectColumns} FROM ${tableDefinition.name} WHERE ${whereStatement}`;
+            console.log(query);
+            let queryResult = yield this.executeQuery(query);
+            console.log(queryResult);
         });
     }
     executeStoredProcedure(queryDefinition, values) {
@@ -134,12 +140,16 @@ class SqlRunner {
                     let updateColumnsAndValues = populateQueryDataStringsResult.updateColumnsAndValues;
                     // EXISTS
                     let recordExists = yield this.getRecordExists(queryDefinition, whereStatement);
-                    // INSERT
-                    yield this.executeInsert(queryDefinition, insertColumns, insertValues, recordExists);
+                    // SELECT - DEBUGGING USE
+                    yield this.executeSelect(queryDefinition, insertColumns, whereStatement);
+                    // // INSERT
+                    // await this.executeInsert(queryDefinition, insertColumns, insertValues, recordExists);
                     // UPDATE
                     yield this.executeUpdate(queryDefinition, updateColumnsAndValues, whereStatement, recordExists);
-                    // DELETE
-                    yield this.executeDelete(queryDefinition, whereStatement, insertColumns, updateColumnsAndValues);
+                    // // DELETE
+                    // await this.executeDelete(queryDefinition, whereStatement, insertColumns, updateColumnsAndValues);
+                    // SELECT - DEBUGGING USE
+                    yield this.executeSelect(queryDefinition, insertColumns, whereStatement);
                     console.log('-----');
                 }
             }
@@ -181,7 +191,6 @@ class SqlRunner {
             if (queryDefinition.type === 'storedProcedure') {
                 query = `SELECT IIF (EXISTS (SELECT 1 FROM sys.Objects WHERE object_id = object_id(N'${queryDefinition.name}') AND type IN (N'P',N'PC')), 'true', 'false') as 'object_exists'`;
             }
-            console.log(query);
             let queryResult = yield this.executeQuery(query);
             return Promise.resolve(queryResult.recordset[0].object_exists === 'true');
         });
@@ -226,6 +235,7 @@ class SqlRunner {
     translateConfig(config) {
         let sqlConnectionPoolConfig;
         if (config.trustedConnection === true) {
+            sql = require('mssql/msnodesqlv8'); // NOTE: Fields with triggers cause this to hang. Use when Trusted Connection is required to attach to database.
             sqlConnectionPoolConfig = {
                 server: config.serverName,
                 database: config.databaseName,
@@ -235,6 +245,7 @@ class SqlRunner {
             };
         }
         else {
+            sql = require('mssql'); // Use when Trusted Connection is not required to attach to database
             sqlConnectionPoolConfig = {
                 server: config.serverName,
                 database: config.databaseName,
