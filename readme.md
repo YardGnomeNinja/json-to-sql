@@ -6,4 +6,4 @@
 npm install -g yardgnomeninja/json-to-sql#master
 
 ## Run
-sql-to-json '\<path>\\\<to>\\\<fixture.json>'
+json-to-sql '\<path>\\\<to>\\\<fixture.json>'
