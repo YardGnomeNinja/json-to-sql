@@ -270,10 +270,10 @@ export class SqlRunner {
             sqlConnectionPoolConfig = {
                 server: config.serverName,
                 database: config.databaseName,
-                connectionTimeout: 30000,
+                connectionTimeout: config.connectionTimeout !== undefined ? config.connectionTimeout : 15000,
                 options: {
                     trustedConnection: true,
-                    enableArithAbort: true
+                    enableArithAbort: config.enableArithAbort !== undefined ? config.enableArithAbort : true 
                 }
             };
         } else {
@@ -284,9 +284,9 @@ export class SqlRunner {
                 database: config.databaseName,
                 user: config.username,
                 password: config.password,
-                connectionTimeout: 30000,
+                connectionTimeout: config.connectionTimeout !== undefined ? config.connectionTimeout : 15000,
                 options: {
-                    enableArithAbort: true
+                    enableArithAbort: config.enableArithAbort !== undefined ? config.enableArithAbort : true 
                 }
             };
         }
