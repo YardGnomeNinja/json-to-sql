@@ -22,7 +22,7 @@ function parseArgs(args) {
 }
 // Note the following allows async code to execute on init.
 // Use for testing
-(() => __awaiter(void 0, void 0, void 0, function* () { yield main(process.argv); }))();
+// (async () => { console.log('ASYNC STARTUP ENABLED - Did you forget to comment this out, dingus?'); await main(process.argv); })();
 function main(args) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
