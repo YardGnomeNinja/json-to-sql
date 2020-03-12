@@ -141,15 +141,15 @@ class SqlRunner {
                     // EXISTS
                     let recordExists = yield this.getRecordExists(queryDefinition, whereStatement);
                     // SELECT - DEBUGGING USE
-                    yield this.executeSelect(queryDefinition, insertColumns, whereStatement);
+                    // await this.executeSelect(queryDefinition, insertColumns, whereStatement);
                     // // INSERT
-                    // await this.executeInsert(queryDefinition, insertColumns, insertValues, recordExists);
+                    yield this.executeInsert(queryDefinition, insertColumns, insertValues, recordExists);
                     // UPDATE
                     yield this.executeUpdate(queryDefinition, updateColumnsAndValues, whereStatement, recordExists);
                     // // DELETE
-                    // await this.executeDelete(queryDefinition, whereStatement, insertColumns, updateColumnsAndValues);
+                    yield this.executeDelete(queryDefinition, whereStatement, insertColumns, updateColumnsAndValues);
                     // SELECT - DEBUGGING USE
-                    yield this.executeSelect(queryDefinition, insertColumns, whereStatement);
+                    // await this.executeSelect(queryDefinition, insertColumns, whereStatement);
                     console.log('-----');
                 }
             }
