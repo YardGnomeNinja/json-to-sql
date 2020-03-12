@@ -148,19 +148,19 @@ export class SqlRunner {
                 let recordExists = await this.getRecordExists(queryDefinition, whereStatement);
 
                 // SELECT - DEBUGGING USE
-                await this.executeSelect(queryDefinition, insertColumns, whereStatement);
+                // await this.executeSelect(queryDefinition, insertColumns, whereStatement);
 
                 // // INSERT
-                // await this.executeInsert(queryDefinition, insertColumns, insertValues, recordExists);
+                await this.executeInsert(queryDefinition, insertColumns, insertValues, recordExists);
                 
                 // UPDATE
                 await this.executeUpdate(queryDefinition, updateColumnsAndValues, whereStatement, recordExists);
     
                 // // DELETE
-                // await this.executeDelete(queryDefinition, whereStatement, insertColumns, updateColumnsAndValues);
+                await this.executeDelete(queryDefinition, whereStatement, insertColumns, updateColumnsAndValues);
     
                 // SELECT - DEBUGGING USE
-                await this.executeSelect(queryDefinition, insertColumns, whereStatement);
+                // await this.executeSelect(queryDefinition, insertColumns, whereStatement);
 
                 console.log('-----');
             }
