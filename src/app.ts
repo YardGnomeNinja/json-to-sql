@@ -14,7 +14,7 @@ function parseArgs(args: any) {
 
 // Note the following allows async code to execute on init.
 // Use for testing
-(async () => { await main(process.argv); })();
+// (async () => { console.log('ASYNC STARTUP ENABLED - Did you forget to comment this out, dingus?'); await main(process.argv); })();
 
 export async function main(args: Array<string>) {
     try {
