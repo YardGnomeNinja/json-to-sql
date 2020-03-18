@@ -55,6 +55,9 @@ function main(args) {
                 sqlRunner.close();
             }
             console.log(error);
+            console.log(`-----`);
+            console.log(`Don't forget: Key and data field name matching is case sensitive. If you got an 'undefined' key value, that's probably why.`);
+            console.log(`-----`);
             // Exit with error
             process.exit(1);
         }

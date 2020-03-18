@@ -212,7 +212,7 @@ class SqlRunner {
         let spFieldsAndValues = '';
         for (let column of columns) {
             // If the current column name is found in the keys, ignore it
-            if (keys !== undefined && keys.findIndex(x => x.name.toLowerCase() === column.name.toLowerCase()) === -1) {
+            if (keys !== undefined && keys.findIndex(x => x.name === column.name) === -1) {
                 if (insertColumns !== '') {
                     insertColumns += ', ';
                 }
