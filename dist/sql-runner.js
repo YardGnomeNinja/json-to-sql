@@ -190,14 +190,18 @@ class SqlRunner {
             if (queryDefinition.type === 'storedProcedure') {
                 query = `SELECT IIF (EXISTS (SELECT 1 FROM sys.Objects WHERE object_id = object_id(N'${queryDefinition.name}') AND type IN (N'P',N'PC')), 'true', 'false') as 'object_exists'`;
             }
+            console.log(query);
             let queryResult = yield this.executeQuery(query);
+            console.log(queryResult);
             return Promise.resolve(queryResult.recordset[0].object_exists === 'true');
         });
     }
     getRecordExists(tableDefinition, whereStatement) {
         return __awaiter(this, void 0, void 0, function* () {
             let query = `SELECT IIF (EXISTS (SELECT 1 FROM ${tableDefinition.name} WHERE ${whereStatement}), 'true', 'false') as 'record_exists'`;
+            console.log(query);
             let queryResult = yield this.executeQuery(query);
+            console.log(queryResult);
             return Promise.resolve(queryResult.recordset[0].record_exists === 'true');
         });
     }

@@ -212,7 +212,9 @@ export class SqlRunner {
             query = `SELECT IIF (EXISTS (SELECT 1 FROM sys.Objects WHERE object_id = object_id(N'${queryDefinition.name}') AND type IN (N'P',N'PC')), 'true', 'false') as 'object_exists'`;
         }     
 
+        console.log(query);
         let queryResult = await this.executeQuery(query);
+        console.log(queryResult);
 
         return Promise.resolve(queryResult.recordset[0].object_exists === 'true');
     }
@@ -220,7 +222,9 @@ export class SqlRunner {
     private async getRecordExists(tableDefinition: any, whereStatement: string): Promise<boolean> {
         let query = `SELECT IIF (EXISTS (SELECT 1 FROM ${tableDefinition.name} WHERE ${whereStatement}), 'true', 'false') as 'record_exists'`;
 
+        console.log(query);
         let queryResult = await this.executeQuery(query);
+        console.log(queryResult);
 
         return Promise.resolve(queryResult.recordset[0].record_exists === 'true');
     }
