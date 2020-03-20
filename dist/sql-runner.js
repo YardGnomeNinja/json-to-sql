@@ -11,6 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 let sql;
 class SqlRunner {
     constructor(sqlServerConfig) {
+        this.disableMutationStatements = false;
         this.sqlConnectionPoolConfig = this.translateConfig(sqlServerConfig);
     }
     buildWhereStatement(keys) {
@@ -19,7 +20,9 @@ class SqlRunner {
             if (result !== '') {
                 result += ' AND ';
             }
-            result += `${keyValuePair.name}=${keyValuePair.value}`;
+            if (keyValuePair.value !== undefined) {
+                result += `${keyValuePair.name}=${keyValuePair.value}`;
+            }
         }
         return result;
     }
@@ -55,8 +58,14 @@ class SqlRunner {
             let query = `DELETE FROM ${tableDefinition.name} WHERE ${whereStatement}`;
             if (deleteIfOnlyKeyIsSpecified && insertColumns === '' && updateColumnsAndValues === '') {
                 console.log(query);
-                let queryResult = yield this.executeQuery(query);
-                console.log(queryResult);
+                // Should the SQL be executed?
+                if (!this.disableMutationStatements) {
+                    let queryResult = yield this.executeQuery(query);
+                    console.log(queryResult);
+                }
+                else {
+                    console.log('!!Not Executed!!');
+                }
             }
         });
     }
@@ -66,8 +75,14 @@ class SqlRunner {
             let query = `INSERT INTO ${tableDefinition.name} (${insertColumns}) VALUES (${insertValues})`;
             if (insertIfMissing && !recordExists && insertColumns != '') {
                 console.log(query);
-                let queryResult = yield this.executeQuery(query);
-                console.log(queryResult);
+                // Should the SQL be executed?
+                if (!this.disableMutationStatements) {
+                    let queryResult = yield this.executeQuery(query);
+                    console.log(queryResult);
+                }
+                else {
+                    console.log('!!Not Executed!!');
+                }
             }
         });
     }
@@ -93,8 +108,14 @@ class SqlRunner {
         return __awaiter(this, void 0, void 0, function* () {
             let query = `EXEC ${queryDefinition.name} ${values}`;
             console.log(query);
-            let queryResult = yield this.executeQuery(query);
-            console.log(queryResult);
+            // Should the SQL be executed?
+            if (!this.disableMutationStatements) {
+                let queryResult = yield this.executeQuery(query);
+                console.log(queryResult);
+            }
+            else {
+                console.log('!!Not Executed!!');
+            }
         });
     }
     executeStoredProcedureQueryDefinition(queryDefinition) {
@@ -162,8 +183,14 @@ class SqlRunner {
             let query = `UPDATE ${tableDefinition.name} SET ${updateColumnsAndValues} WHERE ${whereStatement}`;
             if (recordExists && updateColumnsAndValues != '') {
                 console.log(query);
-                let queryResult = yield this.executeQuery(query);
-                console.log(queryResult);
+                // Should the SQL be executed?
+                if (!this.disableMutationStatements) {
+                    let queryResult = yield this.executeQuery(query);
+                    console.log(queryResult);
+                }
+                else {
+                    console.log('!!Not Executed!!');
+                }
             }
         });
     }
@@ -237,6 +264,7 @@ class SqlRunner {
     }
     translateConfig(config) {
         let sqlConnectionPoolConfig;
+        this.disableMutationStatements = config.disableMutationStatements;
         if (config.trustedConnection === true) {
             sql = require('mssql/msnodesqlv8'); // NOTE: Fields with triggers cause this to hang. Use when Trusted Connection is required to attach to database.
             sqlConnectionPoolConfig = {
@@ -250,7 +278,7 @@ class SqlRunner {
             };
         }
         else {
-            sql = require('mssql'); // Use when Trusted Connection is not required to attach to database
+            sql = require('mssql/msnodesqlv8'); // Use when Trusted Connection is not required to attach to database
             sqlConnectionPoolConfig = {
                 server: config.serverName,
                 database: config.databaseName,

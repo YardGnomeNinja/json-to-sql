@@ -6,7 +6,8 @@ export class SqlRunner {
     sqlServerConfig: any;
     sqlConnectionPool: any;
     sqlConnectionPoolConfig: any;
-
+    disableMutationStatements: boolean = false;
+    
     constructor(sqlServerConfig: any) {
         this.sqlConnectionPoolConfig = this.translateConfig(sqlServerConfig);
     }
@@ -19,7 +20,9 @@ export class SqlRunner {
                 result += ' AND ';
             }
 
-            result += `${keyValuePair.name}=${keyValuePair.value}`;
+            if (keyValuePair.value !== undefined) {
+                result += `${keyValuePair.name}=${keyValuePair.value}`;
+            }
         }
 
         return result;
@@ -56,8 +59,14 @@ export class SqlRunner {
 
         if (deleteIfOnlyKeyIsSpecified && insertColumns === '' && updateColumnsAndValues === '') {
             console.log(query);
-            let queryResult = await this.executeQuery(query);
-            console.log(queryResult);
+
+            // Should the SQL be executed?
+            if (!this.disableMutationStatements) {
+                let queryResult = await this.executeQuery(query);
+                console.log(queryResult);
+            } else {
+                console.log('!!Not Executed!!');
+            }
         }
     }
 
@@ -67,8 +76,14 @@ export class SqlRunner {
 
         if (insertIfMissing && !recordExists && insertColumns != '') {
             console.log(query);
-            let queryResult = await this.executeQuery(query);
-            console.log(queryResult);
+
+            // Should the SQL be executed?
+            if (!this.disableMutationStatements) {
+                let queryResult = await this.executeQuery(query);
+                console.log(queryResult);
+            } else {
+                console.log('!!Not Executed!!');
+            }
         } 
     }
 
@@ -92,9 +107,15 @@ export class SqlRunner {
         let query = `EXEC ${queryDefinition.name} ${values}`;
 
         console.log(query);
-        let queryResult = await this.executeQuery(query);
-        console.log(queryResult);
-    }
+
+        // Should the SQL be executed?
+        if (!this.disableMutationStatements) {
+            let queryResult = await this.executeQuery(query);
+            console.log(queryResult);
+        } else {
+            console.log('!!Not Executed!!');
+        }
+}
 
     async executeStoredProcedureQueryDefinition(queryDefinition: any) {
         console.log('-----');
@@ -176,8 +197,14 @@ export class SqlRunner {
 
         if (recordExists && updateColumnsAndValues != '') {
             console.log(query);
-            let queryResult = await this.executeQuery(query);
-            console.log(queryResult);
+
+            // Should the SQL be executed?
+            if (!this.disableMutationStatements) {
+                let queryResult = await this.executeQuery(query);
+                console.log(queryResult);
+            } else {
+                console.log('!!Not Executed!!');
+            }
         }
     }
     
@@ -270,6 +297,8 @@ export class SqlRunner {
     private translateConfig(config: any) {
         let sqlConnectionPoolConfig: any;
 
+        this.disableMutationStatements = config.disableMutationStatements;
+
         if (config.trustedConnection === true) {
             sql = require('mssql/msnodesqlv8'); // NOTE: Fields with triggers cause this to hang. Use when Trusted Connection is required to attach to database.
             
@@ -283,7 +312,7 @@ export class SqlRunner {
                 }
             };
         } else {
-            sql = require('mssql'); // Use when Trusted Connection is not required to attach to database
+            sql = require('mssql/msnodesqlv8'); // Use when Trusted Connection is not required to attach to database
 
             sqlConnectionPoolConfig = {
                 server: config.serverName,
