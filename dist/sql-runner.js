@@ -37,6 +37,9 @@ class SqlRunner {
     executeJson(json) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                if (this.disableMutationStatements) {
+                    console.log(`!!!Mutations disabled!!!`);
+                }
                 for (let queryDefinition of json.queryDefinitions) {
                     // NOTE: Changing the queryDefinition.type to something other than valid options can be used to disable execution for that definition
                     if (queryDefinition.type === 'table') {
@@ -211,8 +214,9 @@ class SqlRunner {
     getDatabaseObjectExists(queryDefinition) {
         return __awaiter(this, void 0, void 0, function* () {
             let query = '';
+            // NOTE: This considers views as tables for the moment
             if (queryDefinition.type === 'table') {
-                query = `SELECT IIF (EXISTS (SELECT 1 FROM sys.Objects WHERE object_id = object_id(N'${queryDefinition.name}') AND type = N'U'), 'true', 'false') as 'object_exists'`;
+                query = `SELECT IIF (EXISTS (SELECT 1 FROM sys.Objects WHERE object_id = object_id(N'${queryDefinition.name}') AND type IN (N'U',N'V')), 'true', 'false') as 'object_exists'`;
             }
             if (queryDefinition.type === 'storedProcedure') {
                 query = `SELECT IIF (EXISTS (SELECT 1 FROM sys.Objects WHERE object_id = object_id(N'${queryDefinition.name}') AND type IN (N'P',N'PC')), 'true', 'false') as 'object_exists'`;
