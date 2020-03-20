@@ -317,7 +317,7 @@ export class SqlRunner {
                 }
             };
         } else {
-            sql = require('mssql/msnodesqlv8'); // Use when Trusted Connection is not required to attach to database
+            sql = require('mssql'); // Use when Trusted Connection is not required to attach to database
 
             sqlConnectionPoolConfig = {
                 server: config.serverName,
