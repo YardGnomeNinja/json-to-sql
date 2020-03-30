@@ -17,7 +17,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "msnodesqlv8": "^0.8.12",
+    "msnodesqlv8": "^1.0.1",
     "mssql": "^6.1.0"
   }
 }

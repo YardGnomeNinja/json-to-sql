@@ -1,5 +1,3 @@
-import { Helpers } from './helpers';
-
 let sql: any;
 
 export class SqlRunner {
@@ -304,32 +302,17 @@ export class SqlRunner {
 
         this.disableMutationStatements = config.disableMutationStatements;
 
-        if (config.trustedConnection === true) {
-            sql = require('mssql/msnodesqlv8'); // NOTE: Fields with triggers cause this to hang. Use when Trusted Connection is required to attach to database.
-            
-            sqlConnectionPoolConfig = {
-                server: config.serverName,
-                database: config.databaseName,
-                connectionTimeout: config.connectionTimeout !== undefined ? config.connectionTimeout : 15000,
-                options: {
-                    trustedConnection: true,
-                    enableArithAbort: config.enableArithAbort !== undefined ? config.enableArithAbort : true 
-                }
-            };
-        } else {
-            sql = require('mssql'); // Use when Trusted Connection is not required to attach to database
-
-            sqlConnectionPoolConfig = {
-                server: config.serverName,
-                database: config.databaseName,
-                user: config.username,
-                password: config.password,
-                connectionTimeout: config.connectionTimeout !== undefined ? config.connectionTimeout : 15000,
-                options: {
-                    enableArithAbort: config.enableArithAbort !== undefined ? config.enableArithAbort : true 
-                }
-            };
-        }
+        sql = require('mssql/msnodesqlv8');
+        
+        sqlConnectionPoolConfig = {
+            server: config.serverName,
+            database: config.databaseName,
+            connectionTimeout: config.connectionTimeout !== undefined ? config.connectionTimeout : 15000,
+            options: {
+                trustedConnection: true,
+                enableArithAbort: config.enableArithAbort !== undefined ? config.enableArithAbort : true 
+            }
+        };
 
         return sqlConnectionPoolConfig;
     }

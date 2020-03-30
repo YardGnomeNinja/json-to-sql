@@ -1,6 +1,6 @@
 {
     "sqlServerConfig": {
-        "disableMutationStatements": true,
+        "disableMutationStatements": false,
         "serverName": "(localdb)\\MSSQLLocalDB",
         "databaseName": "json_to_sql_testing",
         "trustedConnection": true,
